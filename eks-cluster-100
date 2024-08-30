@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for creating an EKS Cluster.'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: 'Testing'
+    AllowedValues:
+      - Testing
+      - Staging
+      - Production
+    Description: 'Environment name for resource tagging and identification.'
+
+Resources:
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Sub '${EnvironmentName}-EKSCluster'
+      ResourcesVpcConfig:
+        SubnetIds: 
+          - Fn::ImportValue: !Sub '${EnvironmentName}:PublicSubnet1Id' 
+          - Fn::ImportValue: !Sub '${EnvironmentName}:PublicSubnet2Id'
+        SecurityGroupIds: 
+          - Fn::ImportValue: !Sub '${EnvironmentName}:EKSSecurityGroupId'
+      RoleArn: !ImportValue EKSClusterRoleArn
+      Logging:
+        ClusterLogging:
+          EnabledTypes:
+            - Type: api
+            - Type: audit
+            - Type: authenticator
+            - Type: controllerManager
+            - Type: scheduler
+
+  StoreEKSClusterCA:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/${EnvironmentName}/EKSClusterCA'
+      Type: String
+      Value: !GetAtt EKSCluster.CertificateAuthorityData
+      Description: "EKS Cluster CA Certificate"
+      Tier: Standard
+
+Outputs:
+  EKSClusterName:
+    Value: !Ref EKSCluster
+    Export:
+      Name: !Sub '${EnvironmentName}:EKSClusterName'
+
+  EKSClusterCAParameter:
+    Value: !Ref StoreEKSClusterCA
+    Description: "SSM Parameter name storing the EKS Cluster CA Certificate"
+    Export:
+      Name: !Sub '${EnvironmentName}:EKSClusterCAParameter'

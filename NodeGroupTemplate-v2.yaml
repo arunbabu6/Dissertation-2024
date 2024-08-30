@@ -1,0 +1,45 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for setting up EKS NodeGroup.'
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: 'Testing'
+    AllowedValues:
+      - Testing
+      - Staging
+      - Production
+    Description: 'Environment name for resource tagging and identification.'
+
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: 'Name of an existing EC2 KeyPair to enable SSH access to the worker nodes.'
+    
+
+Resources:
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: 
+        Fn::ImportValue: !Sub '${EnvironmentName}:EKSClusterName'
+      NodegroupName: !Sub '${EnvironmentName}-NodeGroup'
+      NodeRole: !ImportValue WorkerNodeRoleArn
+      Subnets:
+        - Fn::ImportValue: !Sub '${EnvironmentName}:PublicSubnet1Id'
+        - Fn::ImportValue: !Sub '${EnvironmentName}:PublicSubnet2Id'
+      ScalingConfig:
+        MinSize: 1
+        MaxSize: 3
+        DesiredSize: 2
+      LaunchTemplate:
+        Id: 
+          Fn::ImportValue: !Sub '${EnvironmentName}-LaunchTemplateId'
+        Version: 
+          Fn::ImportValue: !Sub '${EnvironmentName}-LatestVersionNumber'
+
+Outputs:
+  NodeGroupName:
+    Value: !Ref NodeGroup
+    Description: Name of the Node Group
+    Export:
+      Name: !Sub '${EnvironmentName}:NodeGroupName'

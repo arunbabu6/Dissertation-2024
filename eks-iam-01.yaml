@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for creating IAM roles and instance profiles for EKS.'
+Resources:
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+      Policies:
+        - PolicyName: PassRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource: '*'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2InstanceRole
+
+  WorkerNodeRole: 
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: 
+              - sts:AssumeRole 
+      ManagedPolicyArns:      
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      Policies:
+        - PolicyName: PassRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - iam:PassRole 
+
+                Resource: '*'
+  EKSClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+
+Outputs:
+  EC2InstanceProfileName:
+    Description: "Name of the EC2 Instance Profile"
+    Value: !Ref EC2InstanceProfile
+    Export:
+      Name: EC2InstanceProfileName
+
+  EC2InstanceRoleArn:
+    Description: "ARN of the EC2 Instance Role"
+    Value: !GetAtt EC2InstanceRole.Arn
+    Export:
+      Name: EC2InstanceRoleArn
+
+  WorkerNodeRoleArn:
+    Description: "ARN of the Worker Node IAM Role"
+    Value: !GetAtt WorkerNodeRole.Arn
+    Export:
+      Name: WorkerNodeRoleArn
+
+
+  EKSClusterRoleArn:
+    Description: "ARN of the EKS Cluster IAM Role"
+    Value: !GetAtt EKSClusterRole.Arn
+    Export:
+      Name: EKSClusterRoleArn
