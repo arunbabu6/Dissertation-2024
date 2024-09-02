@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EKS Cluster Stack
+
+Resources:
+  ControlPlane:
+    Type: AWS::EKS::Cluster
+    Properties:
+      AccessConfig:
+        AuthenticationMode: API_AND_CONFIG_MAP
+        BootstrapClusterCreatorAdminPermissions: true
+      BootstrapSelfManagedAddons: false
+      KubernetesNetworkConfig:
+        IpFamily: ipv4
+      Name: my-cluster
+      ResourcesVpcConfig:
+        EndpointPrivateAccess: false
+        EndpointPublicAccess: true
+        SecurityGroupIds:
+          - !ImportValue 'env-test-security::ControlPlaneSGId'  # Existing security group for control plane
+          - !ImportValue 'env-test-security::ClusterSharedNodeSecurityGroup'  # Security group for node communication
+        SubnetIds:
+          !Split [",", !Join [",", [
+            !ImportValue 'env-test-network::PublicSubnets',
+            !ImportValue 'env-test-network::PrivateSubnets'
+          ]]]
+      RoleArn: !ImportValue 'env-test-security::ServiceRoleARN'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/ControlPlane'
+      Version: '1.30'
+
+Outputs:
+  EKSClusterARN:
+    Value: !GetAtt ControlPlane.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}::EKSClusterARN'
+
+  CertificateAuthorityData:
+    Value: !GetAtt ControlPlane.CertificateAuthorityData
+
+  ClusterSecurityGroupId:
+    Value: !GetAtt ControlPlane.ClusterSecurityGroupId
+    Export:
+      Name: !Sub '${AWS::StackName}::ClusterSecurityGroupId'
+
+  Endpoint:
+    Value: !GetAtt ControlPlane.Endpoint
+    Export:
+      Name: !Sub '${AWS::StackName}::Endpoint'

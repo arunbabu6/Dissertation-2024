@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Security stack for EKS
+
+Mappings:
+  ServicePrincipalPartitionMap:
+    aws:
+      EC2: ec2.amazonaws.com
+      EKS: eks.amazonaws.com
+      EKSFargatePods: eks-fargate-pods.amazonaws.com
+    aws-cn:
+      EC2: ec2.amazonaws.com.cn
+      EKS: eks.amazonaws.com
+      EKSFargatePods: eks-fargate-pods.amazonaws.com
+    aws-iso:
+      EC2: ec2.c2s.ic.gov
+      EKS: eks.amazonaws.com
+      EKSFargatePods: eks-fargate-pods.amazonaws.com
+    aws-iso-b:
+      EC2: ec2.sc2s.sgov.gov
+      EKS: eks.amazonaws.com
+      EKSFargatePods: eks-fargate-pods.amazonaws.com
+    aws-us-gov:
+      EC2: ec2.amazonaws.com
+      EKS: eks.amazonaws.com
+      EKSFargatePods: eks-fargate-pods.amazonaws.com
+
+Resources:
+  ClusterSharedNodeSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Communication between all nodes in the cluster
+      VpcId: !ImportValue env-test-network::VPCId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}/ClusterSharedNodeSecurityGroup
+
+  ControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Communication between the control plane and worker nodegroups
+      VpcId: !ImportValue env-test-network::VPCId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}/ControlPlaneSecurityGroup
+
+  IngressDefaultClusterToNodeSG:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow managed and unmanaged nodes to communicate with each other
+        (all ports)
+      FromPort: 0
+      GroupId: !Ref ClusterSharedNodeSecurityGroup
+      IpProtocol: '-1'
+      SourceSecurityGroupId: !Ref ClusterSharedNodeSecurityGroup
+      ToPort: 65535
+
+  IngressInterNodeGroupSG:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow nodes to communicate with each other (all ports)
+      FromPort: 0
+      GroupId: !Ref ClusterSharedNodeSecurityGroup
+      IpProtocol: '-1'
+      SourceSecurityGroupId: !Ref ClusterSharedNodeSecurityGroup
+      ToPort: 65535
+
+  IngressNodeToDefaultClusterSG:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow unmanaged nodes to communicate with control plane (all ports)
+      FromPort: 0
+      GroupId: !Ref ClusterSharedNodeSecurityGroup
+      IpProtocol: '-1'
+      SourceSecurityGroupId: !Ref ClusterSharedNodeSecurityGroup
+      ToPort: 65535
+
+  ServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - !FindInMap
+                  - ServicePrincipalPartitionMap
+                  - !Ref AWS::Partition
+                  - EKS
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSClusterPolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSVPCResourceController
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}/ServiceRole
+
+Outputs:
+  ControlPlaneSGId:
+    Value: !Ref ControlPlaneSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}::ControlPlaneSGId
+
+  ServiceRoleARN:
+    Value: !GetAtt ServiceRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}::ServiceRoleARN
+
+  ClusterSharedNodeSecurityGroup:
+    Value: !Ref ClusterSharedNodeSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}::ClusterSharedNodeSecurityGroup

@@ -1,0 +1,196 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Networking stack for EKS
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/VPC'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/InternetGateway'
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/PublicRouteTable'
+
+  PublicSubnetRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+    DependsOn:
+      - VPCGatewayAttachment
+
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NATIP.AllocationId
+      SubnetId: !Ref PublicSubnetUSEAST2B
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/NATGateway'
+
+  NATIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/NATIP'
+
+  PrivateRouteTableUSEAST2A:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/PrivateRouteTableUSEAST2A'
+
+  PrivateRouteTableUSEAST2B:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/PrivateRouteTableUSEAST2B'
+
+  PrivateRouteTableUSEAST2D:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/PrivateRouteTableUSEAST2D'
+
+  NATPrivateSubnetRouteUSEAST2A:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref NATGateway
+      RouteTableId: !Ref PrivateRouteTableUSEAST2A
+
+  NATPrivateSubnetRouteUSEAST2B:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref NATGateway
+      RouteTableId: !Ref PrivateRouteTableUSEAST2B
+
+  NATPrivateSubnetRouteUSEAST2D:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref NATGateway
+      RouteTableId: !Ref PrivateRouteTableUSEAST2D
+
+  PublicSubnetUSEAST2A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.64.0/19
+      AvailabilityZone: us-east-2a
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/SubnetPublicUSEAST2A'
+        - Key: kubernetes.io/role/elb
+          Value: '1'
+
+  PublicSubnetUSEAST2B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.0.0/19
+      AvailabilityZone: us-east-2b
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/SubnetPublicUSEAST2B'
+        - Key: kubernetes.io/role/elb
+          Value: '1'
+
+  PublicSubnetUSEAST2C:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.32.0/19
+      AvailabilityZone: us-east-2c
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/SubnetPublicUSEAST2C'
+        - Key: kubernetes.io/role/elb
+          Value: '1'
+
+  PrivateSubnetUSEAST2A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.160.0/19
+      AvailabilityZone: us-east-2a
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/SubnetPrivateUSEAST2A'
+        - Key: kubernetes.io/role/internal-elb
+          Value: '1'
+
+  PrivateSubnetUSEAST2B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.96.0/19
+      AvailabilityZone: us-east-2b
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/SubnetPrivateUSEAST2B'
+        - Key: kubernetes.io/role/internal-elb
+          Value: '1'
+
+  PrivateSubnetUSEAST2C:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.128.0/19
+      AvailabilityZone: us-east-2c
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/SubnetPrivateUSEAST2C'
+        - Key: kubernetes.io/role/internal-elb
+          Value: '1'
+
+Outputs:
+  VPCId:
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}::VPCId'
+
+  PublicSubnets:
+    Value: !Join [",", [!Ref PublicSubnetUSEAST2A, !Ref PublicSubnetUSEAST2B, !Ref PublicSubnetUSEAST2C]]
+    Export:
+      Name: !Sub '${AWS::StackName}::PublicSubnets'
+
+  PrivateSubnets:
+    Value: !Join [",", [!Ref PrivateSubnetUSEAST2A, !Ref PrivateSubnetUSEAST2B, !Ref PrivateSubnetUSEAST2C]]
+    Export:
+      Name: !Sub '${AWS::StackName}::PrivateSubnets'
