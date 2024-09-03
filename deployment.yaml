@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: my-app-container
-          image: 533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo:${BUILD_ID}
+          image: 533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo:__IMAGE_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 80
