@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: jenkins  # Existing namespace created for testing Jenkins
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-app-container
+          image: 533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo:${BUILD_ID}  # Ensure the image tag is dynamically replaced
+          imagePullPolicy: Always  # Ensures the latest image is pulled from ECR
+          ports:
+            - containerPort: 80  # The container listens on port 80
+          resources:
+            requests:
+              cpu: 100m  # Requests for 100 millicores of CPU
+              memory: 128Mi  # Requests for 128 MiB of memory
+            limits:
+              cpu: 200m  # Limits the container to 200 millicores of CPU
+              memory: 256Mi  # Limits the container to 256 MiB of memory
+          livenessProbe:  # Health check to ensure the container is still running
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15  # Wait 15 seconds before the first probe
+            periodSeconds: 15  # Probe every 15 seconds
+          readinessProbe:  # Health check to determine if the container is ready to serve traffic
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5  # Wait 5 seconds before the first probe
+            periodSeconds: 5  # Probe every 5 seconds
+          securityContext:
+            runAsUser: 1000  # The container will run as user ID 1000
+            fsGroup: 1000  # All files created by the container will be owned by group ID 1000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+  namespace: default  # Change this to your desired namespace
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer  # Exposes the service externally using a cloud provider's load balancer
