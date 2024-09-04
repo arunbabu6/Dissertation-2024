@@ -1,4 +1,3 @@
-# deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,20 +40,19 @@ spec:
             periodSeconds: 5
           securityContext:
             runAsUser: 1000
-            fsGroup: 1000
-  imagePullSecrets:
-  - name: ecr-credentials
+      imagePullSecrets:
+        - name: aws-credentials
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-app-service  # Name of the service
-  namespace: jenkins  # Namespace where the service will be deployed
+  name: my-app-service
+  namespace: jenkins
 spec:
   selector:
-    app: my-app  # This selector matches the labels defined in the deployment to select the Pods
+    app: my-app
   ports:
     - protocol: TCP
-      port: 80  # The port that the service will expose
-      targetPort: 80  # The port on the Pods that the service will forward traffic to
-  type: LoadBalancer  # This exposes the service externally via a cloud provider's load balancer
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
