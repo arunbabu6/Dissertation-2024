@@ -16,6 +16,13 @@ RUN git clone https://github.com/ithinkihaveacat/hello-world-html.git .
 # Clean up unnecessary files like the .git directory
 RUN rm -rf .git
 
+# Create necessary directories and adjust permissions
+RUN mkdir -p /var/cache/nginx/client_temp && \
+    chown -R nginx:nginx /var/cache/nginx
+
+# Remove the user directive from the Nginx configuration
+RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf
+
 # Expose port 80
 EXPOSE 80
 
