@@ -1,12 +1,12 @@
-# Use the official Nginx image as the base image
 FROM nginx:alpine
 
 # Install git and curl to clone the repository and make HTTP requests
 RUN apk add --no-cache git curl
 
-# Create the necessary directories for Nginx and adjust permissions
+# Create all potential Nginx cache directories and set permissions
 RUN mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp /var/cache/nginx/fastcgi_temp \
-    && chown -R nginx:nginx /var/cache/nginx
+    /var/cache/nginx/uwsgi_temp /var/cache/nginx/scgi_temp && \
+    chown -R nginx:nginx /var/cache/nginx
 
 # Set the working directory
 WORKDIR /usr/share/nginx/html
