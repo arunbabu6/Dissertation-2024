@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: my-app-container
-          image: ${ECR_REPOSITORY}:${BUILD_ID}
+          image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -42,7 +42,7 @@ spec:
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "${BUILD_ID}"  # Pass the BUILD_ID as an environment variable
+              value: "__BUILD_ID__"  # Placeholder to be replaced by sed command
       imagePullSecrets:
         - name: aws-credentials
 ---
