@@ -29,13 +29,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 8082
+              port: 80
             initialDelaySeconds: 15
             periodSeconds: 15
           readinessProbe:
             httpGet:
               path: /
-              port: 8082
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
           securityContext:
@@ -56,6 +56,6 @@ spec:
     app: my-app
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 8082
+      port: 8082
+      targetPort: 80
   type: LoadBalancer
