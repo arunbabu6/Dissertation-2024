@@ -39,7 +39,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
           securityContext:
-            runAsUser: 1000
+            runAsUser: 0
           env:
             - name: BUILD_ID
               value: "${BUILD_ID}"  # Pass the BUILD_ID as an environment variable
