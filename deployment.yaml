@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: my-app-container
-          image: ${ECR_REPOSITORY}:__IMAGE_TAG__
+          image: ${ECR_REPOSITORY}:${BUILD_ID}
           imagePullPolicy: Always
           ports:
             - containerPort: 80
