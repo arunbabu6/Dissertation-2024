@@ -40,6 +40,9 @@ spec:
             periodSeconds: 5
           securityContext:
             runAsUser: 1000
+          env:
+            - name: BUILD_ID
+              value: "${BUILD_ID}"  # Pass the BUILD_ID as an environment variable
       imagePullSecrets:
         - name: aws-credentials
 ---
