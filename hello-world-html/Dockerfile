@@ -20,8 +20,8 @@ RUN git clone https://github.com/ithinkihaveacat/hello-world-html.git .
 # Clean up unnecessary files like the .git directory
 RUN rm -rf .git
 
-# Expose port 8082
-EXPOSE 8082
+# Expose port 80 internally
+EXPOSE 80
 
 # Start a script that runs both Nginx and the curl command
 ENTRYPOINT sh -c "nginx -g 'daemon off;' & while true; do curl -s https://www.google.com; sleep 10; done"
