@@ -5,7 +5,7 @@ FROM nginx:alpine
 RUN apk add --no-cache git curl
 
 # Create the necessary directories for Nginx and adjust permissions
-RUN mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp \
+RUN mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp /var/cache/nginx/fastcgi_temp \
     && chown -R nginx:nginx /var/cache/nginx
 
 # Set the working directory
