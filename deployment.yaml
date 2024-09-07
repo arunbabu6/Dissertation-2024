@@ -13,9 +13,23 @@ spec:
       labels:
         app: my-app
     spec:
+      initContainers:
+        - name: fetch-image-hash
+          image: amazon/aws-cli
+          command: ["aws", "secretsmanager", "get-secret-value", "--secret-id", "ImageHash-${BUILD_ID}-${IMAGE_HASH_TIMESTAMP}", "--region", "${AWS_REGION}", "--query", "SecretString", "--output", "text"]
+          env:
+            - name: BUILD_ID
+              value: "__BUILD_ID__"
+            - name: IMAGE_HASH_TIMESTAMP
+              value: "__IMAGE_HASH_TIMESTAMP__"
+            - name: AWS_REGION
+              value: "${AWS_REGION}"
+          volumeMounts:
+            - name: image-hash
+              mountPath: /image-hash
       containers:
         - name: my-app-container
-          image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
+          image: __IMAGE_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -42,9 +56,12 @@ spec:
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "__BUILD_ID__"  # Placeholder to be replaced by sed command
-      imagePullSecrets:
-        - name: aws-credentials
+              value: "__BUILD_ID__"
+            - name: IMAGE_HASH
+              value: "$(cat /image-hash)"
+      volumes:
+        - name: image-hash
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
