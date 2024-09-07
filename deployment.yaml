@@ -5,6 +5,7 @@ metadata:
   namespace: jenkins
   labels:
     build_id: "__BUILD_ID__"  # Dynamically set by the pipeline to help in image hash verification
+    image-hash-timestamp: "__IMAGE_HASH_TIMESTAMP__"  # Dynamically set by the pipeline
 spec:
   replicas: 2
   selector:
@@ -15,6 +16,7 @@ spec:
       labels:
         app: my-app
         build_id: "__BUILD_ID__"  # Dynamically set by the pipeline
+        image-hash-timestamp: "__IMAGE_HASH_TIMESTAMP__"  # Dynamically set by the pipeline
     spec:
       containers:
         - name: my-app-container
@@ -29,25 +31,27 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
-          livenessProbe:  # Ensures the container is healthy and restarts it if unhealthy
+          livenessProbe:
             httpGet:
               path: /
               port: 80
             initialDelaySeconds: 15
             periodSeconds: 15
-          readinessProbe:  # Ensures the container is ready to serve traffic
+          readinessProbe:
             httpGet:
               path: /
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
-          securityContext:  # Set to run the container as root (user ID 0)
+          securityContext:
             runAsUser: 0
           env:
             - name: BUILD_ID
               value: "__BUILD_ID__"  # Dynamically set by the pipeline
+            - name: IMAGE_HASH_TIMESTAMP
+              value: "__IMAGE_HASH_TIMESTAMP__"  # Dynamically set by the pipeline
       imagePullSecrets:
-        - name: aws-credentials  # Ensure this secret is created in your Jenkins namespace for pulling from ECR
+        - name: aws-credentials
 ---
 apiVersion: v1
 kind: Service
