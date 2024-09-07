@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: my-app
   namespace: jenkins
-  labels:
-    build_id: "__BUILD_ID__"  # Dynamically set by the pipeline to help in image hash verification
 spec:
   replicas: 2
   selector:
@@ -14,11 +12,11 @@ spec:
     metadata:
       labels:
         app: my-app
-        build_id: "__BUILD_ID__"  # Dynamically set by the pipeline to propagate build_id to pods
     spec:
+      serviceAccountName: jenkins-sa
       containers:
         - name: my-app-container
-          image: __IMAGE_TAG__  # Dynamically set by the pipeline
+          image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -45,9 +43,9 @@ spec:
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "__BUILD_ID__"  # Dynamically set by the pipeline
+              value: "__BUILD_ID__"  # Placeholder to be replaced by sed command
       imagePullSecrets:
-        - name: aws-credentials  # Ensure this secret is created in your Jenkins namespace for pulling from ECR
+        - name: aws-credentials
 ---
 apiVersion: v1
 kind: Service
@@ -59,6 +57,6 @@ spec:
     app: my-app
   ports:
     - protocol: TCP
-      port: 8082  # Exposing this port externally
-      targetPort: 80  # The container's internal port (Nginx listens on port 80)
-  type: LoadBalancer  # Ensures that the service is accessible externally (AWS ELB)
+      port: 8082
+      targetPort: 80
+  type: LoadBalancer
