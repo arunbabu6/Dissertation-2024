@@ -3,19 +3,15 @@ kind: Deployment
 metadata:
   name: my-app
   namespace: jenkins
-  labels:
-    app: my-app
-    build_id: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: my-app  # Only the app label is used here, build_id is no longer part of the selector
+      app: my-app
   template:
     metadata:
       labels:
         app: my-app
-        build_id: "__BUILD_ID__"  # Dynamically set by the pipeline in pod labels
     spec:
       serviceAccountName: hashcheck-sa
       containers:
@@ -58,7 +54,7 @@ metadata:
   namespace: jenkins
 spec:
   selector:
-    app: my-app  # Use only the app label in the service selector
+    app: my-app
   ports:
     - protocol: TCP
       port: 8082
