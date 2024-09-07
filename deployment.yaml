@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: my-app
   namespace: jenkins
+  labels:
+    build_id: "__BUILD_ID__"  # Dynamically set by the pipeline to help in image hash verification
 spec:
   replicas: 2
   selector:
@@ -12,10 +14,11 @@ spec:
     metadata:
       labels:
         app: my-app
+        build_id: "__BUILD_ID__"  # Dynamically set by the pipeline
     spec:
       containers:
         - name: my-app-container
-          image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
+          image: __IMAGE_TAG__  # Dynamically set by the pipeline
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -26,25 +29,25 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
-          livenessProbe:
+          livenessProbe:  # Ensures the container is healthy and restarts it if unhealthy
             httpGet:
               path: /
               port: 80
             initialDelaySeconds: 15
             periodSeconds: 15
-          readinessProbe:
+          readinessProbe:  # Ensures the container is ready to serve traffic
             httpGet:
               path: /
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
-          securityContext:
+          securityContext:  # Set to run the container as root (user ID 0)
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "__BUILD_ID__"  # Placeholder to be replaced by sed command
+              value: "__BUILD_ID__"  # Dynamically set by the pipeline
       imagePullSecrets:
-        - name: aws-credentials
+        - name: aws-credentials  # Ensure this secret is created in your Jenkins namespace for pulling from ECR
 ---
 apiVersion: v1
 kind: Service
@@ -56,6 +59,6 @@ spec:
     app: my-app
   ports:
     - protocol: TCP
-      port: 8082
-      targetPort: 80
-  type: LoadBalancer
+      port: 8082  # Exposing this port externally
+      targetPort: 80  # The container's internal port (Nginx listens on port 80)
+  type: LoadBalancer  # Ensures that the service is accessible externally (AWS ELB)
