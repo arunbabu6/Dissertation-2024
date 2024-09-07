@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: my-app
   namespace: jenkins
+  labels:
+    build_id: "__BUILD_ID__"  # Dynamically set by the pipeline to help in image hash verification
 spec:
   replicas: 2
   selector:
@@ -12,24 +14,11 @@ spec:
     metadata:
       labels:
         app: my-app
+        build_id: "__BUILD_ID__"  # Dynamically set by the pipeline to propagate build_id to pods
     spec:
-      initContainers:
-        - name: fetch-image-hash
-          image: amazon/aws-cli
-          command: ["aws", "secretsmanager", "get-secret-value", "--secret-id", "ImageHash-${BUILD_ID}-${IMAGE_HASH_TIMESTAMP}", "--region", "${AWS_REGION}", "--query", "SecretString", "--output", "text"]
-          env:
-            - name: BUILD_ID
-              value: "__BUILD_ID__"
-            - name: IMAGE_HASH_TIMESTAMP
-              value: "__IMAGE_HASH_TIMESTAMP__"
-            - name: AWS_REGION
-              value: "${AWS_REGION}"
-          volumeMounts:
-            - name: image-hash
-              mountPath: /image-hash
       containers:
         - name: my-app-container
-          image: __IMAGE_TAG__
+          image: __IMAGE_TAG__  # Dynamically set by the pipeline
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -56,12 +45,9 @@ spec:
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "__BUILD_ID__"
-            - name: IMAGE_HASH
-              value: "$(cat /image-hash)"
-      volumes:
-        - name: image-hash
-          emptyDir: {}
+              value: "__BUILD_ID__"  # Dynamically set by the pipeline
+      imagePullSecrets:
+        - name: aws-credentials  # Ensure this secret is created in your Jenkins namespace for pulling from ECR
 ---
 apiVersion: v1
 kind: Service
@@ -73,6 +59,6 @@ spec:
     app: my-app
   ports:
     - protocol: TCP
-      port: 8082
-      targetPort: 80
-  type: LoadBalancer
+      port: 8082  # Exposing this port externally
+      targetPort: 80  # The container's internal port (Nginx listens on port 80)
+  type: LoadBalancer  # Ensures that the service is accessible externally (AWS ELB)
