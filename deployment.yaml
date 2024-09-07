@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app
+  name: my-app-v2
   namespace: jenkins
   labels:
-    app: my-app
+    app: my-app-v2
 spec:
   replicas: 2
   selector:
@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       labels:
-        app: my-app
+        app: my-app-v2
         build_id: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
     spec:
       serviceAccountName: hashcheck-sa
@@ -53,7 +53,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-app-service
+  name: my-app-service2
   namespace: jenkins
 spec:
   selector:
