@@ -13,7 +13,7 @@ spec:
       labels:
         app: my-app
     spec:
-      serviceAccountName: hashcheck-sa
+      serviceAccountName: jenkins-sa
       containers:
         - name: my-app-container
           image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
