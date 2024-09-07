@@ -18,7 +18,7 @@ spec:
         app: my-app
         build_id: "__BUILD_ID__"  # Dynamically set by the pipeline
     spec:
-      serviceAccountName: jenkins-sa
+      serviceAccountName: hashcheck-sa
       containers:
         - name: my-app-container
           image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
