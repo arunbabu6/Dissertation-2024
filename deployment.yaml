@@ -9,7 +9,7 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: my-app  # Removed the build_id here
+      app: my-app-v2
   template:
     metadata:
       labels:
@@ -57,7 +57,7 @@ metadata:
   namespace: jenkins
 spec:
   selector:
-    app: my-app  # Ensure that the service selector matches the immutable app label
+    app: my-app-v2  # Ensure that the service selector matches the immutable app label
   ports:
     - protocol: TCP
       port: 8082
