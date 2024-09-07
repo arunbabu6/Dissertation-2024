@@ -10,13 +10,12 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: my-app
-      build_id: "__BUILD_ID__"  # This ensures the pods have the correct build_id
+      app: my-app  # Only the app label is used here, build_id is no longer part of the selector
   template:
     metadata:
       labels:
         app: my-app
-        build_id: "__BUILD_ID__"  # Dynamically set by the pipeline
+        build_id: "__BUILD_ID__"  # Dynamically set by the pipeline in pod labels
     spec:
       serviceAccountName: hashcheck-sa
       containers:
@@ -59,8 +58,7 @@ metadata:
   namespace: jenkins
 spec:
   selector:
-    app: my-app
-    build_id: "__BUILD_ID__"  # Ensure that the service selector matches the label
+    app: my-app  # Use only the app label in the service selector
   ports:
     - protocol: TCP
       port: 8082
