@@ -1,0 +1,9 @@
+# Enable Mutual TLS (mTLS) for the jenkins Namespace
+apiVersion: security.istio.io/v1beta1 
+kind: PeerAuthentication
+metadata:
+  name: jenkins-mtls
+  namespace: jenkins
+spec:
+  mtls:
+    mode: STRICT

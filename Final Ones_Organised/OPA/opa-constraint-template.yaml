@@ -1,0 +1,25 @@
+# OPA constraint template restricts the use of unapproved container images, only approves Images start with 533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sapprovedimages
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sApprovedImages
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sapprovedimages
+
+        violation[{"msg": msg}] {
+          input.review.object.kind == "Pod"
+          image := input.review.object.spec.containers[_].image
+          not approved_image(image)
+          msg := sprintf("Unapproved image: %v", [image])
+        }
+
+        approved_image(image) {
+          startswith(image, "533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo")  
+        }

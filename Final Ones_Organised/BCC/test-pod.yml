@@ -1,0 +1,12 @@
+#Test-pod creation, just to test communication with other Pods created using pipeline#
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod
+  namespace: jenkins
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    command: ["/bin/bash", "-c", "while true; do sleep 3600; done"]

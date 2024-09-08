@@ -1,0 +1,19 @@
+# Cilium Policy applied to jenkins namespace
+
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-same-namespace
+  namespace: jenkins  
+spec:
+  endpointSelector:
+    matchLabels:
+      app: my-app
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: "jenkins"
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: "jenkins"

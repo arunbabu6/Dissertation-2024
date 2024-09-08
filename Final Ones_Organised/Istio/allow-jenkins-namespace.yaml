@@ -1,0 +1,14 @@
+#This policy ensures that only services in the jenkins namespace can access my-app-v2. Traffic from outside the jenkins namespace will be blocked.
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-jenkins-namespace
+  namespace: jenkins
+spec:
+  selector:
+    matchLabels:
+      app: my-app-v2
+  rules:
+  - from:
+    - source:
+        namespaces: ["jenkins"]
