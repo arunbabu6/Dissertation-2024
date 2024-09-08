@@ -1,0 +1,100 @@
+BPF
+ 
+ 
+sudo yum install -y bcc bcc-tools python3-bcc bpftrace
+sudo yum install kernel-devel-$(uname -r)
+ 
+Created script, Created service
+sudo systemctl daemon-reload && sudo systemctl enable bcc && sudo systemctl start bcc && systemctl restart bcc && sudo systemctl status bcc
+ 
+and to check if it worked fine
+ 
+journalctl -u bcc
+
+tail -f /var/log/bcc.log    [ monitor live logs while troubleshooting 
+
+after that created a test-pod using a yml file
+ 
+
+Once after this will create a testpod, after that
+ 
+kubectl exec -it test-pod -n jenkins -- /bin/bash
+
+ls
+
+echo "Testing BPF execve monitoring"
+
+curl http://www.example.com
+
+
+All this events will be logged in CloudWatch aswell as var\logs
+
+==========================================================
+ 
+cilium
+ 
+ 
+Install and Deploy Cilium to Kubernetes cluster:
+
+curl -L --remote-name https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
+sudo tar xzvf cilium-linux-amd64.tar.gz -C /usr/local/bin
+cilium install
+
+Validate the installation:
+
+codecilium status
+
+Created Cilium Policy for Jenkins namespace and applied using kubectl commands
+
+kubectl apply -f cilium-network-policy.yaml
+
+
+==============================================================
+
+ OPA (Open Policy Agent) for Admission Control and Istio
+
+Install OPA Gatekeeper
+
+kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/release-3.7/deploy/gatekeeper.yaml
+
+Verify the installation:
+
+kubectl get pods -n gatekeeper-system
+
+
+Temporarily will disable for Istio Installation [ Screenshot taken final ones attached in same directory]
+
+kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io gatekeeper-validating-webhook-configuration
+
+
+Download and install Istio:
+
+Install Istio using the demo profile (which includes mTLS): { Installation done on Node } :
+
+curl -L https://istio.io/downloadIstio | sh -cd istio-*export PATH=$PWD/bin:$PATH
+
+istioctl install --set profile=demo
+
+Enable the Istio injection on the Jenkins namespace:
+
+kubectl label namespace jenkins istio-injection=enabled
+
+
+Once after setting up Istio, Re-enable OPA Gatekeeper:
+
+kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/release-3.7/deploy/gatekeeper.yaml
+
+Created the Istio policies and applied to Jenkins
+
+kubectl apply -f jenkins-mtls.yaml    
+kubectl apply -f allow-jenkins-namespace.yaml      
+kubectl label namespace jenkins istio-injection=enabled
+ 
+
+[[[To remove Istio p[olicies if necessary.
+kubectl delete peerauthentication jenkins-mtls -n jenkins
+kubectl delete authorizationpolicy allow-jenkins-namespace -n jenkins]]
+
+
+===================================================================================
+ 
