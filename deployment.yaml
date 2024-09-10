@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app-v2
+  name: my-app-v2  # Deployment Resource
   namespace: jenkins
   labels:
-    app: my-app-v2 # Deployment Resource
+    app: my-app-v2 
 spec:
   replicas: 2
   selector:
@@ -46,8 +46,7 @@ spec:
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "__BUILD_ID__"  # Placeholder to be replaced by sed command
-      imagePullSecrets:
+              value: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
         - name: aws-credentials
 ---
 apiVersion: v1
