@@ -47,12 +47,13 @@ spec:
           env:
             - name: BUILD_ID
               value: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
+      imagePullSecrets:
         - name: aws-credentials
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-app-service2
+  name: my-app-service2 
   namespace: jenkins
 spec:
   selector:
