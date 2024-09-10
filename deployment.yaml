@@ -4,7 +4,7 @@ metadata:
   name: my-app-v2
   namespace: jenkins
   labels:
-    app: my-app-v2
+    app: my-app-v2 # Deployment Resource
 spec:
   replicas: 2
   selector:
@@ -19,7 +19,7 @@ spec:
       serviceAccountName: jenkins-sa
       containers:
         - name: my-app-container
-          image: __IMAGE_TAG__  # Placeholder to be replaced by sed command
+          image: __IMAGE_TAG__  # This will be dynamically replaced by the pipeline
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -57,7 +57,7 @@ metadata:
   namespace: jenkins
 spec:
   selector:
-    app: my-app-v2  # Ensure that the service selector matches the immutable app label
+    app: my-app-v2  # Service Resource
   ports:
     - protocol: TCP
       port: 8082
