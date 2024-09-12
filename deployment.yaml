@@ -1,25 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app-v2  # Deployment Resource
+  name: my-app-v3
   namespace: jenkins
   labels:
-    app: my-app-v2 
+    app: my-app-v3
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: my-app-v2
+      app: my-app-v3
   template:
     metadata:
       labels:
-        app: my-app-v2
-        build_id: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
+        app: my-app-v3
+        build_id: "__BUILD_ID__"
     spec:
-      serviceAccountName: jenkins-sa
       containers:
         - name: my-app-container
-          image: __IMAGE_TAG__  # This will be dynamically replaced by the pipeline
+          image: __IMAGE_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -46,18 +45,18 @@ spec:
             runAsUser: 0
           env:
             - name: BUILD_ID
-              value: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
+              value: "__BUILD_ID__"
       imagePullSecrets:
         - name: aws-credentials
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-app-service2 
+  name: my-app-service3
   namespace: jenkins
 spec:
   selector:
-    app: my-app-v2  # Service Resource
+    app: my-app-v3
   ports:
     - protocol: TCP
       port: 8082
