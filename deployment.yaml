@@ -43,7 +43,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
           securityContext:
-            runAsUser: 1000  # root
+            runAsUser: 0 # root
           env:
             - name: BUILD_ID
               value: "__BUILD_ID__"  # This will be dynamically replaced by the pipeline
