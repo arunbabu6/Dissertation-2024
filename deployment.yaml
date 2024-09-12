@@ -20,7 +20,7 @@ spec:
       containers:
         - name: my-app-container
           image: 533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo:__IMAGE_TAG__  # dynamically replaced by the pipeline
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           resources:
