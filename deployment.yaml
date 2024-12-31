@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app-v3  # Deployment Resource
-  namespace: jenkins
+  name: my-app-v1  # Deployment Resource
+  namespace: myapps
   labels:
-    app: my-app-v3 
+    app: my-app-v1
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: my-app-v3
+      app: my-app-v1
   template:
     metadata:
       labels:
-        app: my-app-v3
+        app: my-app-v1
         build_id: "__BUILD_ID__"  # dynamically replaced by the pipeline
     spec:
       serviceAccountName: jenkins-sa
       containers:
         - name: my-app-container
-          image: 533267172050.dkr.ecr.us-west-2.amazonaws.com/my-repo:__IMAGE_TAG__  # dynamically replaced by the pipeline
+          image: 913524928146.dkr.ecr.us-west-2.amazonaws.com/my-repo:__IMAGE_TAG__  # dynamically replaced by the pipeline
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
