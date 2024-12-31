@@ -16,7 +16,7 @@ spec:
         app: my-app-v1
         build_id: "__BUILD_ID__"  # dynamically replaced by the pipeline
     spec:
-      serviceAccountName: jenkins-sa
+      serviceAccountName: myapps-sa
       containers:
         - name: my-app-container
           image: 913524928146.dkr.ecr.us-west-2.amazonaws.com/my-repo:__IMAGE_TAG__  # dynamically replaced by the pipeline
@@ -53,11 +53,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-app-service3
-  namespace: jenkins
+  name: my-app-service
+  namespace: myapps
 spec:
   selector:
-    app: my-app-v3  # Service Resource
+    app: my-app-v1  # Service Resource
   ports:
     - protocol: TCP
       port: 8082
