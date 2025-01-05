@@ -1,0 +1,12 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all-to-db
+  namespace: jenkins
+spec:
+  selector:
+    matchLabels:
+      app: my-app-db  # Target the database
+  action: DENY
+  rules:
+  - {}
