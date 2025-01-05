@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: start-ebpf-monitor
+  namespace: bcc-monitoring
+spec:
+  selector:
+    matchLabels:
+      name: ebpf-monitor-control-start
+  template:
+    metadata:
+      labels:
+        name: ebpf-monitor-control-start
+    spec:
+      containers:
+      - name: ebpf-monitor-control-start
+        image: amazonlinux:2
+        securityContext:
+          privileged: true  # Required to interact with host services
+        command: ["/bin/bash", "-c", "sudo chroot /host systemctl start bcc"]
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
+      restartPolicy: Always

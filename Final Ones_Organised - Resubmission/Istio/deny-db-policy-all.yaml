@@ -1,0 +1,11 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: jenkins
+spec:
+  action: DENY
+  rules:
+  - to:
+    - operation:
+        ports: ["3306"]

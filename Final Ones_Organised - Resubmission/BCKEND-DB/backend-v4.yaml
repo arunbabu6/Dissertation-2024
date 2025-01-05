@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-backend
+  namespace: myapps
+  labels:
+    app: my-app-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app-backend
+  template:
+    metadata:
+      labels:
+        app: my-app-backend
+    spec:
+      containers:
+      - name: backend
+        image: python:3.9-alpine
+        command: ["sh", "-c"]
+        args:
+          - |
+            apk update && apk add --no-cache mysql-client &&  # Install mysql-client
+            pip install flask pymysql &&
+            echo "
+            from flask import Flask
+            import pymysql
+            app = Flask(__name__)
+
+            @app.route('/')
+            def home():
+                return 'Backend is running!'
+
+            @app.route('/db')
+            def db():
+                conn = pymysql.connect(
+                    host='my-app-db-service.myapps.svc.cluster.local',
+                    port=3306,
+                    user='root',
+                    password='password',
+                    db='testdb',
+                    ssl={
+                      'ca': '/etc/mysql/certs/ca-cert.pem',
+                      'cert': '/etc/mysql/certs/client-cert.pem',
+                      'key': '/etc/mysql/certs/client-key.pem'
+                    }
+                )
+                return 'Connected to DB'
+
+            if __name__ == '__main__':
+                app.run(host='0.0.0.0', port=5000)
+            " > app.py &&
+            python app.py
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: mysql-client-certs
+          mountPath: /etc/mysql/certs
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        securityContext:
+          runAsUser: 0
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: mysql-client-certs
+        secret:
+          secretName: mysql-client-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-backend-service
+  namespace: myapps
+  labels:
+    app: my-app-backend
+spec:
+  selector:
+    app: my-app-backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

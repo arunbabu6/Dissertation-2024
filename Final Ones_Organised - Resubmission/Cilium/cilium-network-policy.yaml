@@ -1,0 +1,59 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-all-namespaces-except-test-with-internet
+  namespace: myapps
+spec:
+  # Apply this policy to all pods in the "myapps" namespace
+  endpointSelector: {}  # Empty selector matches all pods in the namespace
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "bcc-monitoring"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "default"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "gatekeeper-system"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "istio-system"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "kube-node-lease"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "kube-public"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "kube-system"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "myapps"
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "test"
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "/"
+                headers:
+                  - "Host: *"
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "bcc-monitoring"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "default"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "gatekeeper-system"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "istio-system"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "kube-node-lease"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "kube-public"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "kube-system"
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: "myapps"
+    - toEntities:
+        - world
