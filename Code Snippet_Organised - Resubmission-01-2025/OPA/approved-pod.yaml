@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: approved-pod
+  namespace: myapps
+spec:
+  containers:
+    - name: approved-container
+      image: 913524928146.dkr.ecr.us-west-2.amazonaws.com/my-repo:37
